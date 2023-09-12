@@ -29,3 +29,32 @@ services:
       - zookeeper-test-1
     volumes:
       - ./:/etc/kafka
+  zookeeper-test-2:
+    image: wurstmeister/zookeeper
+    environment:
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "52181:2181"
+    expose:
+      - "2181"
+  kafka-test-2:
+    image: wurstmeister/kafka
+    ports:
+      - "59092:59092"
+    expose:
+      - "59093"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-test-2:2181
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka-test-2:59093,OUTSIDE://localhost:59092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:SASL_PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:59093,OUTSIDE://0.0.0.0:59092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc2/kafka/kafka_server_jaas.conf"
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+    depends_on:
+      - zookeeper-test-2
+    volumes:
+      - ./:/etc2/kafka
